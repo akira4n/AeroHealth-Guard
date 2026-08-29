@@ -38,7 +38,7 @@ Bertanggung jawab penuh atas abstraksi akses database (Data Access Layer).
 
 #### Contoh Kode Repository Pattern:
 ```javascript
-// src/repositories/kelurahan-repository.js
+// src/repositories/kelurahan.repository.js
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 

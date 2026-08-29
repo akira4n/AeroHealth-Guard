@@ -26,7 +26,8 @@ Sebelum melakukan perubahan kode, harap baca dokumen-dokumen berikut untuk memah
 - **Naming Conventions:**
   - *CamelCase* untuk nama variabel, fungsi, dan method (e.g., `getKelurahanList`, `ispuScore`).
   - *PascalCase* untuk nama *Class* (e.g., `KelurahanController`, `IspuService`).
-  - *Kebab-case* untuk nama file (e.g., `kelurahan-controller.js`, `ispu-service.js`).
+  - *Dot notation* / role-based naming untuk nama file modul (e.g., `kelurahan.controller.js`, `ispu.service.js`, `kelurahan.repository.js`, `kelurahan.routes.js`).
+  - *Kebab-case* atau *dot notation* untuk utilitas/middleware umum (e.g., `rate-limiter.middleware.js` atau `rate-limiter.js`).
   - Konstanta menggunakan huruf kapital dengan *underscore* (e.g., `MAX_RETRY_COUNT`).
 - **Asynchronous Code:** Gunakan `async/await` daripada *raw Promises* atau *callbacks*. Selalu *wrap* fungsi *controller* dengan `try/catch` atau *wrapper middleware* untuk menangani *error*.
 
@@ -63,7 +64,7 @@ backend/
 ## Environment Variables
 Sistem bergantung pada *environment variables* berikut (buat file `.env` di *root* direktori):
 ```env
-PORT=3000
+PORT=5000
 NODE_ENV=development
 DATABASE_URL=postgresql://user:password@localhost:5432/aerohealth_db?schema=public
 RATE_LIMIT_WINDOW_MS=60000
