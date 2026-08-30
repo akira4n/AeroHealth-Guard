@@ -1,0 +1,103 @@
+// Prisma Schema for AeroHealth Guard (PostgreSQL + PostGIS)
+// SRS Version 3.1
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Master batas wilayah kelurahan dengan poligon geospasial
+model Kelurahan {
+  id               Int      @id @default(autoincrement())
+  kode_kemendagri  String   @unique @db.VarChar(20)
+  nama_kelurahan   String   @db.VarChar(100)
+  nama_kecamatan   String   @db.VarChar(100)
+  kabupaten_kota   String   @db.VarChar(100)
+  provinsi         String   @default("Sumatera Selatan") @db.VarChar(100)
+  geom             Unsupported("geometry(Polygon, 4326)")
+
+  logs             LogIspuKelurahan[]
+  symptomSummaries KelurahanSymptomSummary[]
+  shelters         CleanShelters[]
+
+  @@map("kelurahan")
+}
+
+/// Master stasiun pemantau kualitas udara darat (WAQI & OpenAQ)
+model StasiunIspu {
+  id           Int       @id @default(autoincrement())
+  source_id    String    @unique @db.VarChar(100)
+  nama_stasiun String    @db.VarChar(150)
+  location     Unsupported("geometry(Point, 4326)")
+  ispu_val     Int?      @default(0)
+  pm25_val     Float?    @default(0.0)
+  last_synced  DateTime? @default(now()) @db.Timestamp(6)
+
+  @@map("stasiun_ispu")
+}
+
+/// Titik api aktif hasil pantauan satelit NASA FIRMS (MODIS/VIIRS)
+model ActiveHotspots {
+  id          Int       @id @default(autoincrement())
+  latitude    Float
+  longitude   Float
+  frp         Float?    @default(0.0)
+  confidence  String?   @db.VarChar(20)
+  acquired_at DateTime  @db.Timestamp(6)
+  location    Unsupported("geometry(Point, 4326)")
+
+  @@map("active_hotspots")
+}
+
+/// Log estimasi skor ISPU dan narasi AI Advisory per kelurahan (siklus cron 3 jam)
+model LogIspuKelurahan {
+  id                Int       @id @default(autoincrement())
+  kelurahan_id      Int
+  ispu_score        Int
+  kategori          String    @db.VarChar(50)
+  primary_pollutant String?   @default("PM2.5") @db.VarChar(20)
+  advisory_text     String?   @db.Text
+  hotspot_detected  Boolean?  @default(false)
+  calculated_at     DateTime? @default(now()) @db.Timestamp(6)
+
+  kelurahan         Kelurahan @relation(fields: [kelurahan_id], references: [id], onDelete: Cascade)
+
+  @@index([kelurahan_id, calculated_at(sort: Desc)], map: "idx_log_kelurahan_time")
+  @@map("log_ispu_kelurahan")
+}
+
+/// Agregasi keluhan kesehatan harian warga (Citizen Health Sensing - Zero PII)
+model KelurahanSymptomSummary {
+  id               Int       @id @default(autoincrement())
+  kelurahan_id     Int
+  tanggal          DateTime  @default(now()) @db.Date
+  count_batuk      Int       @default(0)
+  count_mata_perih Int       @default(0)
+  count_sesak      Int       @default(0)
+  count_normal     Int       @default(0)
+  total_laporan    Int       @default(0)
+
+  kelurahan        Kelurahan @relation(fields: [kelurahan_id], references: [id], onDelete: Cascade)
+
+  @@unique([kelurahan_id, tanggal], name: "unique_kelurahan_tgl")
+  @@index([kelurahan_id, tanggal], map: "idx_symptom_kelurahan")
+  @@map("kelurahan_symptom_summary")
+}
+
+/// Lokasi fasilitas perlindungan udara bersih (Clean Air Shelter)
+model CleanShelters {
+  id           Int        @id @default(autoincrement())
+  kelurahan_id Int?
+  nama_tempat  String     @db.VarChar(150)
+  alamat       String     @db.Text
+  fasilitas    String?    @default("Ruang Ber-AC & Air Bersih") @db.VarChar(100)
+  location     Unsupported("geometry(Point, 4326)")
+
+  kelurahan    Kelurahan? @relation(fields: [kelurahan_id], references: [id])
+
+  @@map("clean_shelters")
+}
