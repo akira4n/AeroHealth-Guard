@@ -1,0 +1,50 @@
+{
+  "name": "aerohealth-guard-backend",
+  "version": "1.0.0",
+  "description": "Express.js Backend API for AeroHealth Guard - Hyperlocal Respiratory Risk & Early Warning Engine",
+  "main": "server.js",
+  "scripts": {
+    "dev": "nodemon server.js",
+    "start": "node server.js",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "test": "jest --runInBand --detectOpenHandles --forceExit",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:seed": "node prisma/seed.js",
+    "postinstall": "prisma skills sync || exit 0"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  },
+  "keywords": [
+    "air-quality",
+    "ispu",
+    "postgis",
+    "express",
+    "prisma"
+  ],
+  "author": "AeroHealth Guard Team",
+  "license": "MIT",
+  "dependencies": {
+    "@prisma/client": "^6.19.3",
+    "compression": "^1.8.1",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.7.0",
+    "helmet": "^8.3.0",
+    "morgan": "^1.12.0",
+    "zod": "^4.5.4"
+  },
+  "devDependencies": {
+    "eslint": "^10.9.1",
+    "eslint-config-prettier": "^10.1.8",
+    "jest": "^30.5.0",
+    "nodemon": "^3.1.14",
+    "prettier": "^3.9.6",
+    "prisma": "^6.19.3",
+    "supertest": "^7.2.2"
+  }
+}
