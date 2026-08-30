@@ -3,12 +3,15 @@
 AeroHealth Guard adalah platform web responsif (Mobile-First) yang menyediakan pemantauan kualitas udara hiperlokal. Proyek ini dikembangkan untuk kompetisi perangkat lunak DSDC ANFORCOM 2026. Frontend ini bertanggung jawab untuk menampilkan peta interaktif kualitas udara, titik api (hotspot), rekomendasi kesehatan berbasis konteks, pencari lokasi tempat penampungan (shelter), serta pelaporan gejala kesehatan warga dalam 1-klik.
 
 ## Required Reading
+
 Agen AI harus membaca dokumen berikut sebelum memodifikasi kode:
+
 - [Product Requirements Document (PRD)](./docs/PRD.md)
 - [Software Requirements Specification (SRS)](./docs/SRS.md)
 - [Architecture Document](./docs/ARCHITECTURE.md)
 
 ## Tech Stack
+
 - Framework: Next.js 14+ (App Router, SSR/CSR hybrid)
 - Styling: Tailwind CSS
 - Maps: Leaflet.js via `react-leaflet`
@@ -16,12 +19,14 @@ Agen AI harus membaca dokumen berikut sebelum memodifikasi kode:
 - API Client: Fetch API / Axios
 
 ## Coding Conventions
+
 - Gunakan TypeScript strict mode.
 - Gunakan Tailwind classes untuk styling. Hindari CSS custom kecuali diperlukan.
 - Penamaan komponen: PascalCase (contoh: `SymptomWidget.tsx`).
 - Mobile-First design: gunakan utility class secara default untuk mobile, dan prefix md/lg untuk breakpoint yang lebih besar.
 
 ## Folder Structure
+
 ```
 frontend/
 ├── src/
@@ -57,6 +62,7 @@ frontend/
 ```
 
 ## Development Commands
+
 - `npm install` - Install dependencies
 - `npm run dev` - Start development server (localhost:3000)
 - `npm run build` - Build for production
@@ -64,5 +70,6 @@ frontend/
 - `npm run lint` - Run ESLint
 
 ## Environment Variables
+
 - `NEXT_PUBLIC_API_URL`: Base URL backend Express.js (contoh: `http://localhost:5000/api`)
 - `NEXT_PUBLIC_MAPBOX_TOKEN` (opsional jika menggunakan tile dari Mapbox)
