@@ -21,7 +21,12 @@ export const metadata: Metadata = {
     'Shelter Udara Bersih',
     'DSDC ANFORCOM 2026'
   ],
-  authors: [{ name: 'AeroHealth Guard Team' }]
+  authors: [{ name: 'AeroHealth Guard Team' }],
+  icons: {
+    icon: '/logo.png',
+    shortcut: '/logo.png',
+    apple: '/logo.png'
+  }
 };
 
 export const viewport: Viewport = {

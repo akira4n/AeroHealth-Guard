@@ -1,5 +1,5 @@
 import React from 'react';
-import { Shield } from 'lucide-react';
+import Image from 'next/image';
 import MapContainerWrapper from '@/components/map/MapContainer';
 import LocationSelector from '@/components/location/LocationSelector';
 import GpsButton from '@/components/location/GpsButton';
@@ -15,9 +15,16 @@ export default function HomePage() {
       {/* ========================================================= */}
       <header className="absolute top-4 left-4 right-4 lg:left-6 lg:right-6 z-20 flex items-center justify-between gap-2 pointer-events-none">
         {/* Brand Pill (Left Side, aligned with sidebar on desktop) */}
-        <div className="flex items-center gap-2.5 rounded-2xl border border-emerald-950/10 bg-white/90 px-3.5 py-2 sm:px-4 sm:py-2.5 shadow-md backdrop-blur-md pointer-events-auto">
-          <div className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-xl bg-[#1B4332] text-white shadow-inner shrink-0">
-            <Shield className="h-4 w-4 sm:h-5 sm:w-5" />
+        <div className="flex items-center gap-2.5 rounded-2xl border border-emerald-950/10 bg-white/90 px-3 py-1.5 sm:px-4 sm:py-2 shadow-md backdrop-blur-md pointer-events-auto">
+          <div className="relative flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-xl overflow-hidden shadow-xs shrink-0 bg-emerald-950/5">
+            <Image
+              src="/logo.png"
+              alt="AeroHealth Guard Logo"
+              width={36}
+              height={36}
+              className="h-full w-full object-contain p-0.5"
+              priority
+            />
           </div>
           <div>
             <h1 className="text-xs sm:text-sm font-bold tracking-tight text-[#143628] leading-none sm:leading-tight">
