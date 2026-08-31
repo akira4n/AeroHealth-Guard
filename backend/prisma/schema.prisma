@@ -18,7 +18,7 @@ model Kelurahan {
   nama_kecamatan   String   @db.VarChar(100)
   kabupaten_kota   String   @db.VarChar(100)
   provinsi         String   @default("Sumatera Selatan") @db.VarChar(100)
-  geom             Unsupported("geometry(Polygon, 4326)")
+  geom             Unsupported("geometry(Geometry, 4326)")
 
   logs             LogIspuKelurahan[]
   symptomSummaries KelurahanSymptomSummary[]
