@@ -1,18 +1,16 @@
-version: "3.8"
-
 services:
   db:
     image: postgis/postgis:16-3.4
     container_name: aerohealth_db
     restart: always
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER:-aerohealth}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-your_secure_password}
+      POSTGRES_DB: ${POSTGRES_DB:-aerohealth_db}
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-aerohealth} -d ${POSTGRES_DB:-aerohealth_db}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -30,11 +28,12 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=5000
-      - DATABASE_URL=${DATABASE_URL}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-aerohealth}:${POSTGRES_PASSWORD:-your_secure_password}@db:5432/${POSTGRES_DB:-aerohealth_db}
+      - CORS_ORIGIN=http://localhost:3000
     depends_on:
       db:
         condition: service_healthy
-    command: sh -c "npx prisma migrate deploy && npm start"
+    command: sh -c "npx prisma generate && npx prisma db push && npm start"
     networks:
       - aerohealth-network
 
@@ -47,7 +46,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://backend:5000}
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:5000/api}
     depends_on:
       - backend
     networks:
@@ -62,13 +61,13 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=${DATABASE_URL}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-aerohealth}:${POSTGRES_PASSWORD:-your_secure_password}@db:5432/${POSTGRES_DB:-aerohealth_db}
       - WAQI_API_TOKEN=${WAQI_API_TOKEN}
       - OPENAQ_API_KEY=${OPENAQ_API_KEY}
       - NASA_FIRMS_MAP_KEY=${NASA_FIRMS_MAP_KEY}
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - GROQ_API_KEY=${GROQ_API_KEY}
-      - CRON_INTERVAL_HOURS=${CRON_INTERVAL_HOURS}
+      - CRON_INTERVAL_HOURS=${CRON_INTERVAL_HOURS:-3}
     depends_on:
       db:
         condition: service_healthy
