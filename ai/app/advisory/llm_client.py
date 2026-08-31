@@ -1,0 +1,114 @@
+import logging
+from typing import Optional
+from app.config import get_settings
+
+logger = logging.getLogger("aerohealth.advisory.llm")
+
+# Supported candidate models in priority order
+GEMINI_CANDIDATE_MODELS = [
+    "gemini-1.5-flash-latest",
+    "gemini-1.5-flash",
+    "gemini-1.5-pro",
+    "gemini-pro",
+]
+
+GROQ_CANDIDATE_MODELS = [
+    "llama-3.1-8b-instant",
+    "llama-3.3-70b-versatile",
+    "mixtral-8x7b-32768",
+    "gemma2-9b-it",
+]
+
+
+def _build_prompt(
+    kategori: str,
+    avg_score: int,
+    dominant_pollutant: str,
+    has_hotspot: bool
+) -> str:
+    """Build standardized Indonesian LLM health advisory prompt."""
+    hotspot_status = "Ada titik api karhutla aktif di sekitar wilayah ini." if has_hotspot else "Tidak ada titik api karhutla aktif terdeteksi di sekitar wilayah ini."
+
+    return f"""Anda adalah asisten pakar kesehatan lingkungan untuk platform AeroHealth Guard.
+Buatkan 1 paragraf narasi imbauan dan rekomendasi mitigasi kesehatan (maksimal 3 hingga 4 kalimat ringkas, komunikatif, dan berfokus pada aksi nyata) dalam bahasa Indonesia baku untuk masyarakat di wilayah dengan kondisi berikut:
+- Kategori Mutu Udara: {kategori} (Skor ISPU rata-rata: {avg_score})
+- Polutan Dominan: {dominant_pollutant}
+- Kondisi Titik Api Satelit: {hotspot_status}
+
+Instruksi Khusus:
+1. Jelaskan dampak singkat kualitas udara terhadap kelompok rentan dan masyarakat umum.
+2. Berikan aksi perlindungan spesifik (penggunaan masker N95/KF94, penutupan ventilasi, konsumsi air putih, atau perlunya evakuasi ke shelter udara bersih ber-AC terdekat jika ISPU tinggi).
+3. Jangan gunakan format bullet point, jangan gunakan emoji, dan berikan langsung paragraf narasi siap baca."""
+
+
+async def generate_llm_advisory(
+    kategori: str,
+    avg_score: int,
+    dominant_pollutant: str = "PM2.5",
+    has_hotspot: bool = False
+) -> Optional[str]:
+    """
+    Generate health advisory text via Google Gemini API or Groq Cloud API with multi-model fallback.
+    Returns generated narrative string if successful, or None if keys are unavailable or API errors occur.
+    """
+    settings = get_settings()
+    prompt = _build_prompt(kategori, avg_score, dominant_pollutant, has_hotspot)
+
+    # 1. Try Google Gemini API first if configured
+    if settings.GEMINI_API_KEY and settings.GEMINI_API_KEY != "your_gemini_api_key":
+        try:
+            import google.generativeai as genai
+            genai.configure(api_key=settings.GEMINI_API_KEY)
+            
+            for model_name in GEMINI_CANDIDATE_MODELS:
+                try:
+                    model = genai.GenerativeModel(model_name)
+                    response = await model.generate_content_async(prompt)
+                    
+                    if response and response.text:
+                        cleaned_text = response.text.strip().replace("\n\n", " ")
+                        logger.info(f"Generated advisory using Gemini ({model_name}) for category '{kategori}'.")
+                        return cleaned_text
+                except Exception as model_err:
+                    logger.debug(f"Gemini model {model_name} failed: {model_err}")
+                    continue
+        except Exception as exc:
+            logger.warning(f"Google Gemini API error: {exc}. Trying Groq if available.")
+
+    # 2. Try Groq Cloud API as secondary/alternative provider
+    if settings.GROQ_API_KEY and settings.GROQ_API_KEY != "your_groq_api_key":
+        try:
+            from groq import AsyncGroq
+            client = AsyncGroq(api_key=settings.GROQ_API_KEY)
+            
+            for model_name in GROQ_CANDIDATE_MODELS:
+                try:
+                    chat_completion = await client.chat.completions.create(
+                        messages=[
+                            {
+                                "role": "system",
+                                "content": "Anda adalah asisten pakar kesehatan lingkungan resmi untuk platform AeroHealth Guard."
+                            },
+                            {
+                                "role": "user",
+                                "content": prompt
+                            }
+                        ],
+                        model=model_name,
+                        temperature=0.3,
+                        max_tokens=250,
+                    )
+                    
+                    content = chat_completion.choices[0].message.content
+                    if content:
+                        cleaned_text = content.strip().replace("\n\n", " ")
+                        logger.info(f"Generated advisory using Groq ({model_name}) for category '{kategori}'.")
+                        return cleaned_text
+                except Exception as groq_model_err:
+                    logger.debug(f"Groq model {model_name} failed: {groq_model_err}")
+                    continue
+        except Exception as exc:
+            logger.warning(f"Groq API error: {exc}.")
+
+    # Neither provider succeeded or no valid API key was present
+    return None
