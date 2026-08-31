@@ -1,16 +1,9 @@
 # Base Python Image
 FROM python:3.11-slim
 
-# Install system dependencies for geospatial libraries
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    gdal-bin \
-    libgeos-dev \
-    libproj-dev \
-    && rm -rf /var/lib/apt/lists/*
-
 WORKDIR /app
 
-# Create a non-root user
+# Create a non-root user for security
 RUN addgroup --system --gid 1001 appgroup && adduser --system --uid 1001 appuser
 
 # Install Python dependencies
