@@ -235,6 +235,7 @@ def init_scheduler() -> AsyncIOScheduler:
         replace_existing=True,
         coalesce=True,
         max_instances=1,
+        misfire_grace_time=3600,
     )
 
     _scheduler.start()
