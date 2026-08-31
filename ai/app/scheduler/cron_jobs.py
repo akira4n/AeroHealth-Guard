@@ -7,7 +7,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 
 from app.models.schemas import PipelineStatus, KelurahanSpatial, StationData
-from app.database.connection import get_db_pool
+from app.database.connection import get_db_pool, ensure_db_pool
 from app.database.queries import (
     fetch_kelurahan_spatial_list,
     upsert_stations,
@@ -91,7 +91,7 @@ async def run_full_pipeline() -> PipelineStatus:
     logger.info("=== Starting AeroHealth Guard Spatial & AI Pipeline ===")
 
     try:
-        pool = get_db_pool()
+        pool = await ensure_db_pool()
 
         # Step 1: Concurrent Data Ingestion
         logger.info("1/5 Ingesting data from external sensors and satellites...")
