@@ -1,0 +1,28 @@
+[project]
+name = "aerohealth-guard-ai"
+version = "1.0.0"
+description = "AI and Spatial Ingestion Microservice for AeroHealth Guard"
+authors = [
+    { name = "AeroHealth Guard Engineering Team" }
+]
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.110.0",
+    "uvicorn[standard]>=0.28.0",
+    "pydantic>=2.6.0",
+    "pydantic-settings>=2.2.0",
+    "httpx>=0.27.0",
+    "apscheduler>=3.10.4",
+    "asyncpg>=0.29.0",
+    "psycopg2-binary>=2.9.9",
+    "numpy>=1.24.0",
+    "scipy>=1.11.0",
+    "shapely>=2.0.0",
+    "google-generativeai>=0.4.0",
+    "groq>=0.4.0",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
