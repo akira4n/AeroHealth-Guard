@@ -6,6 +6,7 @@ dotenv.config();
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
+const { execSync } = require('child_process');
 const { PrismaClient } = require('@prisma/client');
 const sumselWilayah = require('./sumsel_3264_kelurahan.json');
 
@@ -14,15 +15,32 @@ const prisma = new PrismaClient();
 async function main() {
   console.log(`🌱 Memulai proses seeding data geospasial 100% Seluruh ${sumselWilayah.length} Kelurahan/Desa se-Sumatera Selatan...`);
 
-  // 1. Bersihkan data lama secara bertahap (cascade)
-  await prisma.$executeRawUnsafe(
-    `TRUNCATE TABLE kelurahan_symptom_summary, log_ispu_kelurahan, clean_shelters, active_hotspots, stasiun_ispu, kelurahan RESTART IDENTITY CASCADE;`
-  );
-  await prisma.$executeRawUnsafe(
-    `ALTER TABLE kelurahan ALTER COLUMN geom TYPE geometry(Geometry, 4326);`
-  );
+  // 1. Pastikan skema tabel PostGIS terbentuk
+  try {
+    console.log('🔄 Memastikan skema tabel PostGIS tersinkronisasi...');
+    execSync('npx prisma db push --skip-generate', { stdio: 'pipe' });
+  } catch (e) {
+    // Ignore if already pushed or running concurrently
+  }
 
-  console.log('🧹 Tabel berhasil dibersihkan dan tipe geom dikonfigurasi.');
+  // 2. Bersihkan data lama secara aman
+  try {
+    await prisma.$executeRawUnsafe(
+      `TRUNCATE TABLE kelurahan_symptom_summary, log_ispu_kelurahan, clean_shelters, active_hotspots, stasiun_ispu, kelurahan RESTART IDENTITY CASCADE;`
+    );
+  } catch (e) {
+    console.log('ℹ️ Menginisialisasi tabel baru yang masih kosong.');
+  }
+
+  try {
+    await prisma.$executeRawUnsafe(
+      `ALTER TABLE kelurahan ALTER COLUMN geom TYPE geometry(Geometry, 4326);`
+    );
+  } catch (e) {
+    // Column already Geometry
+  }
+
+  console.log('🧹 Tabel siap untuk diisi data baru.');
 
   // 2. Master Batas Wilayah 3.264 Kelurahan Asli se-Sumsel (Batch insert chunks 500)
   console.log(`📥 Menyisipkan ${sumselWilayah.length} poligon desa/kelurahan ke PostGIS...`);
