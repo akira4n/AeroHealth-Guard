@@ -1,6 +1,10 @@
+const path = require('path');
 const dotenv = require('dotenv');
 
+// Load from backend/.env first, then fallback to master root .env
 dotenv.config();
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 
 const config = {
   port: parseInt(process.env.PORT || '5000', 10),
